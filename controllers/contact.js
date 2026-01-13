@@ -15,12 +15,9 @@ const sendContactMail = async (req, res) => {
       html: `
         <div style="font-family:Arial;padding:20px">
           <h2>New Contact Request</h2>
-          <table cellpadding="8">
-            <tr><td><strong>Name:</strong></td><td>${name}</td></tr>
-            <tr><td><strong>Email:</strong></td><td>${email}</td></tr>
-            <tr><td><strong>Phone:</strong></td><td>${phone || "-"}</td></tr>
-            <tr><td><strong>Subject:</strong></td><td>${subject || "-"}</td></tr>
-          </table>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Phone:</strong> ${phone || "N/A"}</p>
           <p><strong>Message:</strong></p>
           <p>${message}</p>
           <hr />
