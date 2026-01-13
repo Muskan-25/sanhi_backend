@@ -9,8 +9,8 @@ const sendContactMail = async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: process.env.MAIL_FROM,
-      to: process.env.MAIL_TO,
+      from: email,
+      to: process.env.SMTP_USER,
       subject: `📩 New Contact Request`,
       html: `
         <div style="font-family:Arial;padding:20px">
@@ -25,7 +25,7 @@ const sendContactMail = async (req, res) => {
         </div>
       `,
     });
-
+    
     res.json({ success: true, message: "Mail sent successfully" });
   } catch (error) {
     console.error(error);
