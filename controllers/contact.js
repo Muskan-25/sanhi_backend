@@ -1,37 +1,41 @@
-const transporter  = require('../utils/mailer');
+const {transporter}  = require('../utils/mailer');
 
 const sendContactMail = async (req, res) => {
-  const { name, phone, email, subject, message } = req.body;
-
-  if (!name || !email || !message) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
-
   try {
+    const { name, phone, email, subject, message } = req.body;
+
+    // 🔍 Verify SMTP connection
+    await transporter.verify();
+
     await transporter.sendMail({
-      from: email,
-      to: process.env.SMTP_USER,
-      subject: `📩 New Contact Request`,
+      from: `"StriveEdge Contact" <${process.env.SMTP_USER}>`,
+      to: process.env.SMTP_USER, // or info@striveedge.in
+      subject: subject || "New Contact Form Submission",
       html: `
-        <div style="font-family:Arial;padding:20px">
-          <h2>New Contact Request</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone || "N/A"}</p>
-          <p><strong>Message:</strong></p>
+        <div style="font-family: Arial; line-height:1.6">
+          <h2 style="color:#0C6E6D;">New Contact Request</h2>
+          <p><b>Name:</b> ${name}</p>
+          <p><b>Email:</b> ${email}</p>
+          <p><b>Phone:</b> ${phone}</p>
+          <p><b>Message:</b></p>
           <p>${message}</p>
-          <hr />
-          <small>StriveEdge Website Contact Form</small>
         </div>
       `,
     });
-    
-    res.json({ success: true, message: "Mail sent successfully" });
+
+    res.status(200).json({
+      success: true,
+      message: "Mail sent successfully",
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Mail sending failed" });
+    console.error("SMTP ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: "Mail sending failed",
+    });
   }
 };
+
 
 
 module.exports = {sendContactMail}
