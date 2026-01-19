@@ -1,4 +1,5 @@
 const {transporter}  = require('../utils/mailer');
+require('dotenv').config();
 
 const sendContactMail = async (req, res) => {
   try {
