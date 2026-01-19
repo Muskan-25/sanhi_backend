@@ -5,7 +5,7 @@ const sendContactMail = async (req, res) => {
     const { name, phone, email, subject, message } = req.body;
 
     // 🔍 Verify SMTP connection
-    await transporter.verify();
+    // await transporter.verify();
 
     await transporter.sendMail({
       from: `"StriveEdge Contact" <${process.env.SMTP_USER}>`,
