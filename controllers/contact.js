@@ -9,7 +9,7 @@ const sendContactMail = async (req, res) => {
     // await transporter.verify();
 
     await transporter.sendMail({
-      from: `"StriveEdge Contact" <${process.env.SMTP_USER}>`,
+      from: email,
       to: process.env.SMTP_USER, // or info@striveedge.in
       subject: subject || "New Contact Form Submission",
       html: `
