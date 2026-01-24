@@ -8,21 +8,23 @@ const sendContactMail = async (req, res) => {
     // 🔍 Verify SMTP connection
     // await transporter.verify();
 
-    await transporter.sendMail({
-      from: email,
-      to: process.env.SMTP_USER, // or info@striveedge.in
-      subject: subject || "New Contact Form Submission",
-      html: `
-        <div style="font-family: Arial; line-height:1.6">
-          <h2 style="color:#0C6E6D;">New Contact Request</h2>
-          <p><b>Name:</b> ${name}</p>
-          <p><b>Email:</b> ${email}</p>
-          <p><b>Phone:</b> ${phone}</p>
-          <p><b>Message:</b></p>
-          <p>${message}</p>
-        </div>
-      `,
-    });
+   await transporter.sendMail({
+  from: `"StriveEdge" <${process.env.SMTP_USER}>`, // ✅ always Gmail
+  to: process.env.SMTP_USER,
+  replyTo: email, // ✅ user email goes here
+  subject: subject || "New Contact Form Submission",
+  html: `
+    <div style="font-family: Arial; line-height:1.6">
+      <h2 style="color:#0C6E6D;">New Contact Request</h2>
+      <p><b>Name:</b> ${name}</p>
+      <p><b>Email:</b> ${email}</p>
+      <p><b>Phone:</b> ${phone}</p>
+      <p><b>Message:</b></p>
+      <p>${message}</p>
+    </div>
+  `,
+});
+
 
     res.status(200).json({
       success: true,
