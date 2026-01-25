@@ -13,10 +13,20 @@ const sendContactMail = async (req, res) => {
       });
     }
 
+    // Check if transporter is available
+    if (!transporter) {
+      console.error('❌ Transporter is not available. Check environment variables.');
+      return res.status(500).json({
+        success: false,
+        message: "Email service is not configured. Please contact the administrator.",
+        error: process.env.NODE_ENV === 'development' ? 'Transporter not initialized' : undefined,
+      });
+    }
+
     console.log('📧 Attempting to send email...');
     console.log('SMTP Config:', {
-      host: process.env.SMTP_HOST,
-      port: process.env.SMTP_PORT,
+      host: process.env.SMTP_HOST || 'Not set',
+      port: process.env.SMTP_PORT || 'Not set',
       user: process.env.SMTP_USER ? 'Set' : 'Missing',
       pass: process.env.SMTP_PASS ? 'Set' : 'Missing',
     });
@@ -51,11 +61,23 @@ const sendContactMail = async (req, res) => {
       command: error.command,
       response: error.response,
       responseCode: error.responseCode,
+      message: error.message,
+      stack: error.stack,
     });
+    
+    // Provide more helpful error messages
+    let errorMessage = "Mail sending failed";
+    if (error.code === 'EAUTH') {
+      errorMessage = "Authentication failed. Please check SMTP credentials.";
+    } else if (error.code === 'ECONNECTION') {
+      errorMessage = "Could not connect to SMTP server.";
+    } else if (error.code === 'ETIMEDOUT') {
+      errorMessage = "Connection to SMTP server timed out.";
+    }
     
     res.status(500).json({
       success: false,
-      message: "Mail sending failed",
+      message: errorMessage,
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
