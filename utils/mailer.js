@@ -14,18 +14,36 @@ let transporter = null;
 
 try {
   if (missingVars.length === 0) {
+    const port = parseInt(process.env.SMTP_PORT) || 587;
+    const isSecure = process.env.SMTP_SECURE === 'true' || port === 465;
+    
     transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT) || 587, // Convert to number, default to 587
-      secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465', // 465 is typically secure
+      port: port,
+      secure: isSecure, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
       },
-      // Add connection timeout and retry options
-      connectionTimeout: 10000, // 10 seconds
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
+      // Increased timeouts for Render's network
+      connectionTimeout: 60000, // 60 seconds (increased from 10)
+      greetingTimeout: 30000, // 30 seconds
+      socketTimeout: 60000, // 60 seconds
+      // Additional options for better connection handling
+      pool: true, // Use connection pooling
+      maxConnections: 1,
+      maxMessages: 3,
+      // For TLS connections (port 587)
+      requireTLS: !isSecure, // Require TLS for non-secure ports
+      tls: {
+        // Do not fail on invalid certificates (sometimes needed for Render)
+        rejectUnauthorized: false,
+      },
+      // Retry options
+      retry: {
+        attempts: 3,
+        delay: 2000, // 2 seconds between retries
+      },
     });
 
     // Verify connection on startup (optional, can be commented if causing issues)

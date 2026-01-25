@@ -27,11 +27,18 @@ const sendContactMail = async (req, res) => {
     console.log('SMTP Config:', {
       host: process.env.SMTP_HOST || 'Not set',
       port: process.env.SMTP_PORT || 'Not set',
+      secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
       user: process.env.SMTP_USER ? 'Set' : 'Missing',
       pass: process.env.SMTP_PASS ? 'Set' : 'Missing',
     });
 
-    await transporter.sendMail({
+    // Try sending with retry logic
+    let retries = 3;
+    let lastError = null;
+    
+    while (retries > 0) {
+      try {
+        await transporter.sendMail({
       from: `"StriveEdge" <${process.env.SMTP_USER}>`,
       to: process.env.SMTP_USER,
       replyTo: email,
@@ -47,13 +54,25 @@ const sendContactMail = async (req, res) => {
           <p>${message}</p>
         </div>
       `,
-    });
-
-    console.log('✅ Email sent successfully');
-    res.status(200).json({
-      success: true,
-      message: "Mail sent successfully",
-    });
+        });
+        
+        console.log('✅ Email sent successfully');
+        return res.status(200).json({
+          success: true,
+          message: "Mail sent successfully",
+        });
+      } catch (retryError) {
+        lastError = retryError;
+        retries--;
+        if (retries > 0) {
+          console.log(`⚠️  Retry attempt ${4 - retries}/3...`);
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
+        }
+      }
+    }
+    
+    // If all retries failed, throw the last error
+    throw lastError;
   } catch (error) {
     console.error("❌ SMTP ERROR:", error);
     console.error("Error details:", {
